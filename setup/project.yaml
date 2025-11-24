@@ -7,9 +7,11 @@ spec:
   description: Projeto de bancos de dados gerenciado pelo ArgoCD
   sourceRepos:
     - 'git@github.com:davidcardoso-homelab/databases.git'
-    - 'oci://registry-1.docker.io/bitnamicharts/'
+    - 'https://charts.bitnami.com/bitnami'
   destinations:
     - namespace: databases
+      server: https://kubernetes.default.svc
+    - namespace: monitoring
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: '*'

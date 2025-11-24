@@ -6,13 +6,13 @@ metadata:
 spec:
   project: databases
   sources:
-    - repoURL: 'oci://registry-1.docker.io/bitnamicharts/'
+    - repoURL: 'https://charts.bitnami.com/bitnami'
       chart: postgresql
       targetRevision: 18.1.*
       helm:
         releaseName: postgres
         valueFiles:
-          - $values/values/values.yaml
+          - $values/postgres/values/values.yaml
     - repoURL: 'git@github.com:davidcardoso-homelab/databases.git'
       targetRevision: main
       ref: values
