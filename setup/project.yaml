@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: databases
+  namespace: argocd
+spec:
+  description: Projeto de bancos de dados gerenciado pelo ArgoCD
+  sourceRepos:
+    - 'git@github.com:davidcardoso-homelab/databases.git'
+    - 'oci://registry-1.docker.io/bitnamicharts/'
+  destinations:
+    - namespace: databases
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
