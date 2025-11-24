@@ -1,0 +1,153 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+## Please, note that this will override the parameters, including dependencies, configured to use the global value
+##
+global:
+  postgresql:
+    ## @param global.postgresql.fullnameOverride Full chart name (overrides `fullnameOverride`)
+    ## @param global.postgresql.auth.postgresPassword Password for the "postgres" admin user (overrides `auth.postgresPassword`)
+    ## @param global.postgresql.auth.username Name for a custom user to create (overrides `auth.username`)
+    ## @param global.postgresql.auth.password Password for the custom user to create (overrides `auth.password`)
+    ## @param global.postgresql.auth.database Name for a custom database to create (overrides `auth.database`)
+    ## @param global.postgresql.auth.existingSecret Name of existing secret to use for PostgreSQL credentials (overrides `auth.existingSecret`).
+    ## @param global.postgresql.auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials (overrides `auth.secretKeys.adminPasswordKey`). Only used when `global.postgresql.auth.existingSecret` is set.
+    ## @param global.postgresql.auth.secretKeys.userPasswordKey Name of key in existing secret to use for PostgreSQL credentials (overrides `auth.secretKeys.userPasswordKey`). Only used when `global.postgresql.auth.existingSecret` is set.
+    ## @param global.postgresql.auth.secretKeys.replicationPasswordKey Name of key in existing secret to use for PostgreSQL credentials (overrides `auth.secretKeys.replicationPasswordKey`). Only used when `global.postgresql.auth.existingSecret` is set.
+    ##
+    auth:
+      database: "postgres"
+      username: "postgres"
+      existingSecret: "postgres-admindb-secret"
+      secretKeys:
+        adminPasswordKey: "POSTGRES_ADMIN_PASSWORD"
+        userPasswordKey: "POSTGRES_PASSWORD"
+        replicationPasswordKey: "POSTGRES_REPLICATION_PASSWORD"
+    ## @param global.postgresql.service.ports.postgresql PostgreSQL service port (overrides `service.ports.postgresql`)
+    ##
+    service:
+      ports:
+        postgresql: "5432"
+
+## Authentication parameters
+## ref: https://github.com/bitnami/containers/tree/main/bitnami/postgresql#setting-the-root-password-on-first-run
+## ref: https://github.com/bitnami/containers/tree/main/bitnami/postgresql#creating-a-database-on-first-run
+## ref: https://github.com/bitnami/containers/tree/main/bitnami/postgresql#creating-a-database-user-on-first-run
+##
+auth:
+  ## @param auth.username Name for a custom user to create
+  ##
+  username: "postgres"
+  ## @param auth.database Name for a custom database to create
+  ##
+  database: "postgres"
+  ## @param auth.replicationUsername Name of the replication user
+  ##
+  replicationUsername: repl_user
+  ## @param auth.existingSecret Name of existing secret to use for PostgreSQL credentials. `auth.postgresPassword`, `auth.password`, and `auth.replicationPassword` will be ignored and picked up from this secret. The secret might also contains the key `ldap-password` if LDAP is enabled. `ldap.bind_password` will be ignored and picked from this secret in this case.
+  ##
+  existingSecret: "postgres-admindb-secret"
+  ## @param auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ## @param auth.secretKeys.userPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ## @param auth.secretKeys.replicationPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
+  ##
+  secretKeys:
+    adminPasswordKey: POSTGRES_ADMIN_PASSWORD
+    userPasswordKey: POSTGRES_PASSWORD
+    replicationPasswordKey: POSTGRES_REPLICATION_PASSWORD
+
+## @param containerPorts.postgresql PostgreSQL container port
+##
+containerPorts:
+  postgresql: 5432
+
+## @param postgresqlDataDir PostgreSQL data dir folder
+##
+postgresqlDataDir: /bitnami/postgresql/data
+## @param postgresqlSharedPreloadLibraries Shared preload libraries (comma-separated list)
+##
+postgresqlSharedPreloadLibraries: "pgaudit"
+
+## Start PostgreSQL pod(s) without limitations on shm memory.
+## By default docker and containerd (and possibly other container runtimes) limit `/dev/shm` to `64M`
+## ref: https://github.com/docker-library/postgres/issues/416
+## ref: https://github.com/containerd/containerd/issues/3654
+##
+shmVolume:
+  ## @param shmVolume.enabled Enable emptyDir volume for /dev/shm for PostgreSQL pod(s)
+  ##
+  enabled: true
+  ## @param shmVolume.sizeLimit Set this to enable a size limit on the shm tmpfs
+  ## Note: the size of the tmpfs counts against container's memory limit
+  ## e.g:
+  ## sizeLimit: 1Gi
+  ##
+  sizeLimit: "512Mi"
+
+## @section PostgreSQL Primary parameters
+##
+primary:
+  ## PostgreSQL Primary resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  ## @param primary.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if primary.resources is set (primary.resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "none"
+  ## @param primary.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## Example:
+  ## resources:
+  ##   requests:
+  ##     cpu: 2
+  ##     memory: 512Mi
+  ##   limits:
+  ##     cpu: 3
+  ##     memory: 1024Mi
+  ##
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 500m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  ## PostgreSQL Primary persistence configuration
+  ##
+  persistence:
+    ## @param primary.persistence.existingClaim Name of an existing PVC to use
+    ##
+    existingClaim: "postgres-pvc"
+    ## @param primary.persistence.storageClass PVC Storage Class for PostgreSQL Primary data volume
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: "local-path"
+
+## @section Metrics Parameters
+##
+metrics:
+  ## @param metrics.enabled Start a prometheus exporter
+  ##
+  enabled: true
+
+  ## Prometheus Operator ServiceMonitor configuration
+  ##
+  serviceMonitor:
+    ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+    ##
+    enabled: true
+    ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
+    ##
+    namespace: "monitoring"
+    ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ##
+    interval: "10s"
+    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ##
+    scrapeTimeout: "5s"
