@@ -11,7 +11,7 @@ spec:
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-path
   hostPath:
-    path: /volumes/ssd/k3s/postgres
+    path: /volumes/hdd/k3s/postgres
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
