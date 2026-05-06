@@ -114,8 +114,8 @@ primary:
       memory: 512Mi
       cpu: 500m
     limits:
-      memory: 1Gi
-      cpu: 500m
+      memory: 2Gi
+      cpu: 2000m
 
   ## PostgreSQL Primary persistence configuration
   ##
